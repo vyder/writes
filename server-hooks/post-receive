@@ -1,0 +1,28 @@
+# Checkout repo in temp folder
+cd /tmp
+rm -rf writes
+git clone /home/vidur/Repositories/writes.git
+cd writes
+echo "Created temporary repo."
+
+site=/var/www/vidur.io
+archive_dir=$site/archive/writes
+dest_dir=$site/writes
+
+# Backup previously generated files
+timestamp=$(date +%Y%m%d_%H%M%S)
+mkdir $archive_dir/$timestamp
+cp -r $dest_dir/* $archive_dir/$timestamp
+rm -rf $dest_dir/*
+echo "Backed up previous deployment to: $archive_dir/$timestamp."
+
+# Deploy published files
+cp published/*.html $dest_dir
+echo "Copied published posts over to $dest_dir."
+
+# Cleanup
+echo "Cleaning up..."
+cd ..
+rm -rf writes
+
+echo "All done!"
