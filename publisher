@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+require 'erb'
+include ERB::Util
+
+journal_dir = "journal"
+journal_files = journal_dir + "/*.md"
+publish_dir = "published"
+
+post_template = File.read(File.expand_path("templates/post.erb"))
+
+Dir[journal_files].each do |filepath|
+
+    # load_file ignores anything that's not YAML front-matter
+    post_header = YAML.load_file(File.expand_path(filepath))
+
+    unless post_header and post_header["publish"]
+        next
+    end
+
+    # Load up the post_title for our binding context
+    post_title = post_header["title"]
+
+    # Read the file, overwrite the front matter
+    journal_file = File.read(File.expand_path(filepath))
+    post_body = journal_file.gsub(/---(.|\n)*---\n?/, "")
+
+    # Process body into an array of paragraphs
+    post_body = post_body.split("\n\n")
+    post_body.first.gsub!("\n", "")
+    post_body.last.gsub!("\n", "")
+
+    # Create a slug out of filename
+    slug = filepath.split("/").last.gsub(/\..*$/, "")
+
+    # Create template, and generate post
+    template = ERB.new(post_template)
+    File.open(File.expand_path("published") + "/#{slug}.html", 'w') do |f|
+        f.write template.result(binding)
+    end
+end
